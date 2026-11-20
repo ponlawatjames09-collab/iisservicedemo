@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบแจ้งซ่อม Ultrasound & Carm</title>
+  <!-- ดึง Bootstrap 5 มาใช้งาน -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #f4f6f9; padding: 20px 0; font-family: 'Sarabun', sans-serif; }
+    .main-container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+  </style>
+</head>
+<body>
+
+<div class="main-container">
+  <h2 class="text-center mb-4 text-primary">🩺 ระบบแจ้งปัญหา Ultrasound & Carm</h2>
+
+  <!-- ส่วนที่ 1: ฟอร์มแจ้งซ่อม -->
+  <form id="repairForm" onsubmit="event.preventDefault(); submitForm();">
+    
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label for="equipmentType" class="form-label fw-bold">ชนิดเครื่อง</label>
+        <!-- เมื่อเลือกชนิดเครื่อง จะเรียก updateModels() ทันที -->
+        <select class="form-select" id="equipmentType" onchange="updateModels()" required>
+          <option value="" disabled selected>-- กรุณาเลือกชนิดเครื่อง --</option>
+          <option value="Ultrasound">Ultrasound</option>
+          <option value="Carm">Carm</option>
+        </select>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label for="model" class="form-label fw-bold">รุ่นเครื่อง (Model)</label>
+        <select class="form-select" id="model" required>
+          <option value="" disabled selected>-- เลือกรุ่นเครื่อง --</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label for="sn" class="form-label fw-bold">เลขประจำเครื่อง (SN)</label>
+      <input type="text" class="form-control" id="sn" placeholder="ระบุ Serial Number" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="problem" class="form-label fw-bold">รายละเอียดปัญหา (Problem)</label>
+      <textarea class="form-control" id="problem" rows="3" placeholder="ระบุอาการเสีย หรือปัญหาที่พบ" required></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label for="reporter" class="form-label fw-bold">ผู้รายงาน (Reporter)</label>
+      <input type="text" class="form-control" id="reporter" placeholder="ระบุชื่อผู้แจ้งซ่อม / แผนก" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100 fs-5 py-2" id="submitBtn">บันทึกการแจ้งซ่อม</button>
+  </form>
+
+  <hr class="my-5">
+
+  <!-- ส่วนที่ 2: ตารางแสดงประวัติและอัปเดตสถานะ -->
+  <h4 class="mb-3 text-secondary">📋 ประวัติการแจ้งซ่อม / สถานะงาน</h4>
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle" id="jobTable">
+      <thead class="table-dark text-center">
+        <tr>
+          <th style="min-width: 100px;">เวลาแจ้ง</th>
+          <th style="min-width: 150px;">รุ่น / SN</th>
+          <th style="min-width: 200px;">อาการ / ผู้แจ้ง</th>
+          <th style="min-width: 130px;">สถานะปัจจุบัน</th>
+          <th style="min-width: 150px;">อัปเดตสถานะ</th>
+          <th style="min-width: 200px;">รายละเอียดการแก้ไข</th>
+          <th style="min-width: 80px;">จัดการ</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- ข้อมูลจะถูกโหลดผ่าน JavaScript มาใส่ตรงนี้ -->
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ส่วนที่ 3: JavaScript ทั้งหมด -->
+<script>
+  // นำ URL Web App (/exec) ของโปรเจกต์ US_Service (ที่ Deploy เวอร์ชันล่าสุดแล้ว) มาใส่ที่นี่
+  const GAS_WEB_APP_URL = 'วาง_URL_WEB_APP_ของ_US_SERVICE_ที่นี่';
+
+  // 3.1 ข้อมูล Dropdown รุ่นเครื่อง
+  const modelsData = {
+    "Ultrasound": [
+      "Affiniti30", "Affiniti50", "Affiniti70", "Affiniti CVx", 
+      "CX50", "ClearVue", "3300", "EPIQElite", "EPIQ7", "EPIQ5", 
+      "5500", "5100"
+    ],
+    "Carm": [
+      "BV Vectra-9", "BV Endura-9", "BV Endura-12", "BV Pulsera-9", 
+      "BV Pulsera-12", "Veradius Neo", "Veradius Unity", "Zenition 50-9", 
+      "Zenition 50-12", "Zenition 70FD12", "Zenition 70FD15", 
+      "Zenition 70FD17", "Zenition 90", "Zenition 10", "Zenition 30"
+    ]
+  };
+
+  async function postToGas(payload) {
+    const response = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    return await response.json();
+  }
+
+  // 3.2 ฟังก์ชันดึงรุ่นเครื่องมาใส่ Dropdown
+  function updateModels() {
+    const type = document.getElementById('equipmentType').value;
+    const modelSelect = document.getElementById('model');
+    
+    // เคลียร์ค่าเก่าทิ้ง
+    modelSelect.innerHTML = '<option value="" disabled selected>-- เลือกรุ่นเครื่อง --</option>';
+    
+    // วนลูปใส่ค่าใหม่ตามชนิดที่เลือก
+    if (modelsData[type]) {
+      modelsData[type].forEach(function(modelName) {
+        const opt = document.createElement('option');
+        opt.value = modelName;
+        opt.text = modelName;
+        modelSelect.appendChild(opt);
+      });
+    }
+  }
+
+  // 3.3 ฟังก์ชันส่งข้อมูลฟอร์ม
+  async function submitForm() {
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = 'กำลังบันทึกข้อมูล... ⏳';
+
+    const formData = {
+      equipmentType: document.getElementById('equipmentType').value,
+      model: document.getElementById('model').value,
+      sn: document.getElementById('sn').value,
+      problem: document.getElementById('problem').value,
+      reporter: document.getElementById('reporter').value
+    };
+
+    try {
+      const res = await postToGas({ action: 'addJob', data: formData });
+      if (res.status === 'success' || res.message === 'Success') {
+        alert("บันทึกการแจ้งซ่อมเรียบร้อยแล้ว!");
+        document.getElementById('repairForm').reset();
+        updateModels(); // รีเซ็ต Dropdown รุ่นเครื่องด้วย
+        loadTableData(); // รีเฟรชตารางใหม่ทันที
+      } else {
+        alert("เกิดข้อผิดพลาด: " + (res.message || 'ไม่สามารถบันทึกข้อมูลได้'));
+      }
+    } catch (error) {
+      alert("ระบบขัดข้อง: " + error.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = 'บันทึกการแจ้งซ่อม';
+    }
+  }
+
+  // 3.4 โหลดตารางเมื่อเปิดหน้าเว็บ
+  document.addEventListener("DOMContentLoaded", function() {
+    loadTableData();
+  });
+
+  // 3.5 ฟังก์ชันโหลดข้อมูลตารางจากหลังบ้าน
+  async function loadTableData() {
+    const tbody = document.querySelector('#jobTable tbody');
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">กำลังโหลดประวัติการแจ้งซ่อม... ⏳</td></tr>';
+
+    try {
+      const res = await postToGas({ action: 'getJobs' });
+      if (res && res.status === 'success') {
+        renderTable(res.data || []);
+      } else {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">โหลดข้อมูลไม่สำเร็จ: ${(res && res.message) || 'Unknown error'}</td></tr>`;
+      }
+    } catch (error) {
+      tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">โหลดข้อมูลไม่สำเร็จ: ${error.message}</td></tr>`;
+    }
+  }
+
+  // 3.6 ฟังก์ชันวาดข้อมูลลงตาราง
+  function renderTable(jobs) {
+    const tbody = document.querySelector('#jobTable tbody');
+    tbody.innerHTML = ''; 
+
+    if (!jobs || jobs.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">ยังไม่มีประวัติการแจ้งซ่อมในระบบ</td></tr>';
+      return;
+    }
+
+    jobs.forEach(function(job) {
+      let badgeClass = "bg-secondary";
+      if (job.status === "รอดำเนินการ") badgeClass = "bg-warning text-dark";
+      else if (job.status === "ช่างรับเรื่อง") badgeClass = "bg-primary";
+      else if (job.status === "กำลังซ่อมดำเนินการ") badgeClass = "bg-primary";
+      else if (job.status === "เสร็จสิ้น") badgeClass = "bg-success";
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="text-nowrap"><small>${job.timestamp}</small></td>
+        <td><strong>${job.model}</strong><br><small class="text-muted">SN: ${job.sn}</small><br><span class="badge bg-info text-dark mt-1">${job.equipmentType}</span></td>
+        <td>${job.problem}<br><small class="text-primary">แจ้งโดย: ${job.reporter}</small></td>
+        <td class="text-center">
+          <span class="badge ${badgeClass} fs-6 mb-1">${job.status}</span>
+          <div class="text-muted" style="font-size: 0.85em;">${job.details || '-'}</div>
+        </td>
+        <td>
+          <select id="status_${job.sheetName}_${job.rowNumber}" class="form-select form-select-sm">
+            <option value="รอดำเนินการ" ${job.status === 'รอดำเนินการ' ? 'selected' : ''}>รอดำเนินการ</option>
+            <option value="ช่างรับเรื่อง" ${job.status === 'ช่างรับเรื่อง' ? 'selected' : ''}>ช่างรับเรื่อง</option>
+            <option value="กำลังซ่อมดำเนินการ" ${job.status === 'กำลังซ่อมดำเนินการ' ? 'selected' : ''}>กำลังซ่อมดำเนินการ</option>
+            <option value="เสร็จสิ้น" ${job.status === 'เสร็จสิ้น' ? 'selected' : ''}>เสร็จสิ้น</option>
+          </select>
+        </td>
+        <td>
+          <input type="text" id="detail_${job.sheetName}_${job.rowNumber}" class="form-control form-control-sm" placeholder="ระบุการแก้ไข..." value="${job.details}">
+        </td>
+        <td class="text-center">
+          <button class="btn btn-sm btn-success w-100" id="btn_${job.sheetName}_${job.rowNumber}" onclick="saveUpdate('${job.sheetName}', ${job.rowNumber})">บันทึก</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // 3.7 ฟังก์ชันบันทึกการอัปเดตจากตาราง (สำหรับช่าง)
+  async function saveUpdate(sheetName, rowNumber) {
+    const btn = document.getElementById(`btn_${sheetName}_${rowNumber}`);
+    const status = document.getElementById(`status_${sheetName}_${rowNumber}`).value;
+    const details = document.getElementById(`detail_${sheetName}_${rowNumber}`).value;
+
+    btn.disabled = true;
+    btn.innerHTML = '...';
+
+    try {
+      const res = await postToGas({
+        action: 'updateJob',
+        sheetName: sheetName,
+        rowNumber: rowNumber,
+        status: status,
+        details: details
+      });
+      if (res.status === 'success' || res.message === 'Success') {
+        alert("อัปเดตสถานะสำเร็จ!");
+        loadTableData(); // โหลดตารางใหม่
+      } else {
+        alert("ข้อผิดพลาด: " + (res.message || 'อัปเดตไม่สำเร็จ'));
+        btn.disabled = false;
+        btn.innerHTML = 'บันทึก';
+      }
+    } catch (err) {
+      alert("ระบบขัดข้อง: " + err.message);
+      btn.disabled = false;
+      btn.innerHTML = 'บันทึก';
+    }
+  }
+</script>
+
+</body>
+</html>
