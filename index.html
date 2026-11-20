@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ระบบแจ้งซ่อม Ultrasound & Carm</title>
+  <meta name="description" content="ระบบแจ้งปัญหาและติดตามสถานะงานซ่อมเครื่อง Ultrasound & Carm">
+  <meta property="og:title" content="ระบบแจ้งซ่อม Ultrasound & Carm">
+  <meta property="og:description" content="ระบบแจ้งปัญหาและติดตามสถานะงานซ่อมเครื่อง Ultrasound & Carm">
   <!-- ดึง Bootstrap 5 มาใช้งาน -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
@@ -83,8 +86,8 @@
 
 <!-- ส่วนที่ 3: JavaScript ทั้งหมด -->
 <script>
-  // นำ URL Web App (/exec) ของโปรเจกต์ US_Service (ที่ Deploy เวอร์ชันล่าสุดแล้ว) มาใส่ที่นี่
-  const GAS_WEB_APP_URL = 'https://script.google.com/u/0/home/projects/1lp__OdHSnQWA3TeqPEF56aV_5a0pNiIUatck9nY6zQZ63OsPdGMAw-3l/edit';
+  // เรียกผ่าน backend proxy (/api/gas) ซึ่งรองรับทั้ง GAS_WEB_APP_URL (/exec) และโหมด in-memory
+  const GAS_WEB_APP_URL = '/api/gas';
 
   // 3.1 ข้อมูล Dropdown รุ่นเครื่อง
   const modelsData = {
