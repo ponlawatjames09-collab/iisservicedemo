@@ -4,105 +4,688 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ระบบแจ้งซ่อม Ultrasound & Carm</title>
-  <meta name="description" content="ระบบแจ้งปัญหาและติดตามสถานะงานซ่อมเครื่อง Ultrasound & Carm">
+  <meta name="description" content="ระบบแจ้งปัญหาและติดตามสถานะงานซ่อมเครื่อง Ultrasound & Carm เครื่อง DEMO">
   <meta property="og:title" content="ระบบแจ้งซ่อม Ultrasound & Carm">
-  <meta property="og:description" content="ระบบแจ้งปัญหาและติดตามสถานะงานซ่อมเครื่อง Ultrasound & Carm">
-  <!-- ดึง Bootstrap 5 มาใช้งาน -->
+  <meta property="og:description" content="ระบบแจ้งปัญหาและติดตามสถานะงานซ่อมเครื่อง Ultrasound & Carm เครื่อง DEMO">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body { background-color: #f4f6f9; padding: 20px 0; font-family: 'Sarabun', sans-serif; }
-    .main-container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    :root {
+      --bg-canvas: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-subtle: #f1f5f9;
+      --border-hairline: #e2e8f0;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --brand-accent: #c86d1f;
+      --brand-accent-dark: #a85712;
+      --brand-accent-soft: #fff7ed;
+      --brand-accent-border: #fed7aa;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      max-width: 100%;
+      overflow-x: hidden;
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      font-family: 'Plus Jakarta Sans', 'IBM Plex Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      margin: 0;
+      padding: 0;
+    }
+
+    .app-shell {
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 20px 20px 36px;
+    }
+
+    /* Top Header */
+    .brand-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: 14px;
+      padding: 14px 20px;
+      margin-bottom: 16px;
+    }
+
+    .brand-identity {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .brand-logo-wrap {
+      width: 56px;
+      height: 56px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      background: var(--bg-surface);
+      border: 1px solid var(--brand-accent-border);
+      padding: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-logo {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 50%;
+    }
+
+    .brand-title {
+      font-size: clamp(1.1rem, 2vw, 1.45rem);
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0;
+      line-height: 1.25;
+      text-wrap: balance;
+    }
+
+    .brand-subtitle {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 2px;
+    }
+
+    .brand-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .btn-brand {
+      background-color: var(--brand-accent);
+      border: 1px solid var(--brand-accent);
+      color: #ffffff;
+      font-weight: 600;
+      padding: 9px 16px;
+      border-radius: 9px;
+      font-size: 0.875rem;
+      white-space: nowrap;
+      transition: background-color 150ms cubic-bezier(0.16, 1, 0.3, 1), transform 150ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-brand:hover, .btn-brand:focus-visible {
+      background-color: var(--brand-accent-dark);
+      border-color: var(--brand-accent-dark);
+      color: #ffffff;
+    }
+
+    .btn-subtle {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      color: var(--text-secondary);
+      font-weight: 500;
+      padding: 9px 14px;
+      border-radius: 9px;
+      font-size: 0.875rem;
+      white-space: nowrap;
+      transition: background-color 150ms cubic-bezier(0.16, 1, 0.3, 1), border-color 150ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-subtle:hover {
+      background-color: var(--bg-subtle);
+      border-color: #cbd5e1;
+      color: var(--text-primary);
+    }
+
+    /* Form Panel */
+    .surface-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-bottom: 16px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .panel-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
+    .form-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
+    }
+
+    .form-control, .form-select {
+      border-color: var(--border-hairline);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      color: var(--text-primary);
+      min-height: 38px;
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: var(--brand-accent);
+      box-shadow: 0 0 0 3px rgba(200, 109, 31, 0.14);
+    }
+
+    /* Filter & Segmented Status Controls */
+    .toolbar-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .status-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding: 4px;
+      background: var(--bg-subtle);
+      border-radius: 10px;
+    }
+
+    .status-tab-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 7px;
+      white-space: nowrap;
+      transition: background-color 150ms cubic-bezier(0.16, 1, 0.3, 1), color 150ms cubic-bezier(0.16, 1, 0.3, 1);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .status-tab-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .status-tab-btn.active {
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+    }
+
+    .toolbar-filters {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toolbar-filters .form-select,
+    .toolbar-filters .form-control {
+      min-height: 36px;
+      font-size: 0.825rem;
+    }
+
+    /* Zero-Horizontal-Scroll Data Table (Desktop) */
+    .table-wrap {
+      width: 100%;
+      overflow-x: visible;
+    }
+
+    .repair-table {
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-bottom: 0;
+    }
+
+    .repair-table thead th {
+      background: var(--bg-subtle);
+      color: var(--text-secondary);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 10px 10px;
+      border-top: 1px solid var(--border-hairline);
+      border-bottom: 1px solid var(--border-hairline);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .repair-table thead th:first-child {
+      border-left: 1px solid var(--border-hairline);
+      border-top-left-radius: 10px;
+    }
+
+    .repair-table thead th:last-child {
+      border-right: 1px solid var(--border-hairline);
+      border-top-right-radius: 10px;
+      text-align: center;
+    }
+
+    .repair-table tbody td {
+      padding: 11px 10px;
+      border-bottom: 1px solid var(--border-hairline);
+      vertical-align: top;
+      font-size: 0.85rem;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    .repair-table tbody tr:hover td {
+      background-color: #f8fafc;
+    }
+
+    .col-time { width: 10%; }
+    .col-model { width: 14%; }
+    .col-problem { width: 29%; }
+    .col-status { width: 12%; }
+    .col-update { width: 13%; }
+    .col-detail { width: 15%; }
+    .col-action { width: 7%; text-align: center; }
+
+    .mono-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+      font-size: 0.78rem;
+    }
+
+    .meta-inline {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .problem-text {
+      white-space: pre-line;
+      color: var(--text-primary);
+      line-height: 1.45;
+    }
+
+    .status-label {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    .status-pending {
+      background-color: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-received {
+      background-color: #dbeafe;
+      color: #1e40af;
+    }
+
+    .status-repairing {
+      background-color: #ffedd5;
+      color: #9a3412;
+    }
+
+    .status-done {
+      background-color: #dcfce7;
+      color: #166534;
+    }
+
+    .btn-save-row {
+      background-color: #0f172a;
+      border: 1px solid #0f172a;
+      color: #ffffff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 7px;
+      width: 100%;
+      white-space: nowrap;
+      transition: background-color 150ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-save-row:hover {
+      background-color: var(--brand-accent);
+      border-color: var(--brand-accent);
+      color: #ffffff;
+    }
+
+    .btn-save-row:disabled {
+      opacity: 0.6;
+    }
+
+    /* Compact mobile & tablet card-row transformation: ZERO horizontal scrolling */
+    @media (max-width: 991.98px) {
+      .app-shell {
+        padding: 12px 12px 28px;
+      }
+
+      .brand-header {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 14px 16px;
+      }
+
+      .brand-actions {
+        width: 100%;
+      }
+
+      .brand-actions .btn-brand,
+      .brand-actions .btn-subtle {
+        flex: 1;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .surface-panel {
+        padding: 14px;
+      }
+
+      .toolbar-filters {
+        width: 100%;
+      }
+
+      .toolbar-filters .form-select,
+      .toolbar-filters .form-control {
+        flex: 1 1 140px;
+        min-height: 42px;
+      }
+
+      .status-tabs {
+        width: 100%;
+      }
+
+      .status-tab-btn {
+        flex: 1 1 auto;
+        min-height: 38px;
+        text-align: center;
+      }
+
+      .repair-table,
+      .repair-table thead,
+      .repair-table tbody,
+      .repair-table th,
+      .repair-table td,
+      .repair-table tr {
+        display: block;
+        width: 100%;
+      }
+
+      .repair-table thead {
+        display: none;
+      }
+
+      .repair-table tbody tr {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-hairline);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 12px;
+      }
+
+      .repair-table tbody tr:hover td {
+        background-color: transparent;
+      }
+
+      .repair-table tbody td {
+        width: 100% !important;
+        padding: 4px 0;
+        border-bottom: none;
+        text-align: left !important;
+      }
+
+      .repair-table tbody td.mobile-inline-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        padding-bottom: 8px;
+        margin-bottom: 6px;
+        border-bottom: 1px solid var(--border-hairline);
+      }
+
+      .repair-table tbody td.mobile-field-label::before {
+        content: attr(data-label);
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+        margin-top: 6px;
+      }
+
+      .repair-table .form-select,
+      .repair-table .form-control,
+      .repair-table .btn-save-row {
+        min-height: 44px;
+        font-size: 0.9rem;
+      }
+
+      .repair-table tbody td.col-action {
+        padding-top: 10px;
+      }
+    }
   </style>
 </head>
 <body>
 
-<div class="main-container">
-  <h2 class="text-center mb-4 text-primary">🩺 ระบบแจ้งปัญหา Ultrasound & Carm</h2>
+<div class="app-shell">
+  <!-- ส่วนหัวพร้อมโลโก้ IIS -->
+  <header class="brand-header">
+    <div class="brand-identity">
+      <div class="brand-logo-wrap">
+        <img src="/public/assets/aistudio/Image_1_2314e76e" alt="IIS Service Logo" class="brand-logo" referrerpolicy="no-referrer">
+      </div>
+      <div>
+        <h1 class="brand-title">ระบบแจ้งปัญหา Ultrasound &amp; Carm เครื่อง DEMO</h1>
+        <div class="brand-subtitle">IIS Service · ศูนย์บันทึกแจ้งซ่อมและติดตามสถานะเครื่อง DEMO</div>
+      </div>
+    </div>
+    <div class="brand-actions">
+      <button type="button" class="btn-subtle" onclick="downloadCsv()">ส่งออก CSV</button>
+      <button type="button" class="btn-brand" id="toggleFormBtn" onclick="toggleRepairForm()">+ แจ้งซ่อมใหม่</button>
+    </div>
+  </header>
 
-  <!-- ส่วนที่ 1: ฟอร์มแจ้งซ่อม -->
-  <form id="repairForm" onsubmit="event.preventDefault(); submitForm();">
-    
-    <div class="row">
-      <div class="col-md-6 mb-3">
-        <label for="equipmentType" class="form-label fw-bold">ชนิดเครื่อง</label>
-        <!-- เมื่อเลือกชนิดเครื่อง จะเรียก updateModels() ทันที -->
-        <select class="form-select" id="equipmentType" onchange="updateModels()" required>
-          <option value="" disabled selected>-- กรุณาเลือกชนิดเครื่อง --</option>
+  <!-- แถบแจ้งเตือนสถานะการทำงาน -->
+  <div id="appAlert" class="alert d-none alert-dismissible fade show" role="alert">
+    <span id="appAlertText"></span>
+    <button type="button" class="btn-close" aria-label="Close" onclick="hideAlert()"></button>
+  </div>
+
+  <!-- ส่วนที่ 1: ฟอร์มแจ้งซ่อม (พับ/เปิดได้เพื่อให้เห็นตารางข้อมูลเต็มหน้าจอ) -->
+  <section id="repairFormSection" class="surface-panel d-none">
+    <div class="panel-header">
+      <h2 class="panel-title">บันทึกการแจ้งซ่อมใหม่</h2>
+      <button type="button" class="btn-close" aria-label="ปิดฟอร์ม" onclick="toggleRepairForm(false)"></button>
+    </div>
+
+    <form id="repairForm" onsubmit="event.preventDefault(); submitForm();">
+      <div class="row g-3">
+        <div class="col-12 col-sm-6 col-lg-3">
+          <label for="equipmentType" class="form-label">ชนิดเครื่อง</label>
+          <select class="form-select" id="equipmentType" onchange="updateModels()" required>
+            <option value="" disabled selected>-- เลือกชนิดเครื่อง --</option>
+            <option value="Ultrasound">Ultrasound</option>
+            <option value="Carm">Carm</option>
+          </select>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3">
+          <label for="model" class="form-label">รุ่นเครื่อง (Model)</label>
+          <select class="form-select" id="model" required>
+            <option value="" disabled selected>-- เลือกรุ่นเครื่อง --</option>
+          </select>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3">
+          <label for="sn" class="form-label">เลขประจำเครื่อง (SN)</label>
+          <input type="text" class="form-control" id="sn" placeholder="ระบุ Serial Number" required>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3">
+          <label for="reporter" class="form-label">ผู้รายงาน (Reporter)</label>
+          <input type="text" class="form-control" id="reporter" placeholder="ระบุชื่อผู้แจ้ง / แผนก" required>
+        </div>
+
+        <div class="col-12 col-lg-9">
+          <label for="problem" class="form-label">รายละเอียดปัญหา (Problem)</label>
+          <textarea class="form-control" id="problem" rows="2" placeholder="ระบุอาการเสีย หรือปัญหาที่พบ" required></textarea>
+        </div>
+
+        <div class="col-12 col-lg-3 d-flex align-items-end">
+          <button type="submit" class="btn-brand w-100" style="min-height: 44px;" id="submitBtn">บันทึกการแจ้งซ่อม</button>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <!-- ส่วนที่ 2: ตารางแสดงประวัติและอัปเดตสถานะ (พอดีหน้าจอ ไม่มีสกอเลื่อนแนวนอน) -->
+  <section class="surface-panel">
+    <div class="toolbar-row">
+      <div class="status-tabs" id="statusTabs" role="tablist" aria-label="กรองตามสถานะงานซ่อม">
+        <button type="button" class="status-tab-btn active" data-status="" onclick="selectStatusTab(this)">ทั้งหมด (<span id="countAll">0</span>)</button>
+        <button type="button" class="status-tab-btn" data-status="รอดำเนินการ" onclick="selectStatusTab(this)">รอดำเนินการ (<span id="countPending">0</span>)</button>
+        <button type="button" class="status-tab-btn" data-status="ช่างรับเรื่อง" onclick="selectStatusTab(this)">ช่างรับเรื่อง (<span id="countReceived">0</span>)</button>
+        <button type="button" class="status-tab-btn" data-status="กำลังซ่อมดำเนินการ" onclick="selectStatusTab(this)">กำลังซ่อม (<span id="countRepairing">0</span>)</button>
+        <button type="button" class="status-tab-btn" data-status="เสร็จสิ้น" onclick="selectStatusTab(this)">เสร็จสิ้น (<span id="countDone">0</span>)</button>
+      </div>
+
+      <div class="toolbar-filters">
+        <select id="filterEquipment" class="form-select" onchange="applyFilters()" aria-label="กรองตามชนิดเครื่อง">
+          <option value="">ทุกชนิดเครื่อง</option>
           <option value="Ultrasound">Ultrasound</option>
           <option value="Carm">Carm</option>
         </select>
-      </div>
-
-      <div class="col-md-6 mb-3">
-        <label for="model" class="form-label fw-bold">รุ่นเครื่อง (Model)</label>
-        <select class="form-select" id="model" required>
-          <option value="" disabled selected>-- เลือกรุ่นเครื่อง --</option>
-        </select>
+        <input type="text" id="filterKeyword" class="form-control" placeholder="ค้นหา รุ่น / SN / อาการ..." oninput="applyFilters()" aria-label="ค้นหารายการซ่อม">
+        <button type="button" class="btn-subtle" style="padding: 6px 12px;" onclick="loadTableData()">รีเฟรช</button>
       </div>
     </div>
 
-    <div class="mb-3">
-      <label for="sn" class="form-label fw-bold">เลขประจำเครื่อง (SN)</label>
-      <input type="text" class="form-control" id="sn" placeholder="ระบุ Serial Number" required>
+    <div class="table-wrap">
+      <table class="repair-table" id="jobTable">
+        <thead>
+          <tr>
+            <th class="col-time">เวลาแจ้ง</th>
+            <th class="col-model">รุ่น / SN</th>
+            <th class="col-problem">อาการ / ผู้แจ้ง</th>
+            <th class="col-status">สถานะปัจจุบัน</th>
+            <th class="col-update">อัปเดตสถานะ</th>
+            <th class="col-detail">รายละเอียดการแก้ไข</th>
+            <th class="col-action">จัดการ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- ข้อมูลจะถูกโหลดผ่าน JavaScript มาใส่ตรงนี้ -->
+        </tbody>
+      </table>
     </div>
-
-    <div class="mb-3">
-      <label for="problem" class="form-label fw-bold">รายละเอียดปัญหา (Problem)</label>
-      <textarea class="form-control" id="problem" rows="3" placeholder="ระบุอาการเสีย หรือปัญหาที่พบ" required></textarea>
-    </div>
-
-    <div class="mb-3">
-      <label for="reporter" class="form-label fw-bold">ผู้รายงาน (Reporter)</label>
-      <input type="text" class="form-control" id="reporter" placeholder="ระบุชื่อผู้แจ้งซ่อม / แผนก" required>
-    </div>
-
-    <button type="submit" class="btn btn-primary w-100 fs-5 py-2" id="submitBtn">บันทึกการแจ้งซ่อม</button>
-  </form>
-
-  <hr class="my-5">
-
-  <!-- ส่วนที่ 2: ตารางแสดงประวัติและอัปเดตสถานะ -->
-  <h4 class="mb-3 text-secondary">📋 ประวัติการแจ้งซ่อม / สถานะงาน</h4>
-  <div class="table-responsive">
-    <table class="table table-bordered table-hover align-middle" id="jobTable">
-      <thead class="table-dark text-center">
-        <tr>
-          <th style="min-width: 100px;">เวลาแจ้ง</th>
-          <th style="min-width: 150px;">รุ่น / SN</th>
-          <th style="min-width: 200px;">อาการ / ผู้แจ้ง</th>
-          <th style="min-width: 130px;">สถานะปัจจุบัน</th>
-          <th style="min-width: 150px;">อัปเดตสถานะ</th>
-          <th style="min-width: 200px;">รายละเอียดการแก้ไข</th>
-          <th style="min-width: 80px;">จัดการ</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- ข้อมูลจะถูกโหลดผ่าน JavaScript มาใส่ตรงนี้ -->
-      </tbody>
-    </table>
-  </div>
-
+  </section>
 </div>
 
-<!-- ส่วนที่ 3: JavaScript ทั้งหมด -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-  // เรียกผ่าน backend proxy (/api/gas) ซึ่งรองรับทั้ง GAS_WEB_APP_URL (/exec) และโหมด in-memory
   const GAS_WEB_APP_URL = '/api/gas';
 
-  // 3.1 ข้อมูล Dropdown รุ่นเครื่อง
   const modelsData = {
     "Ultrasound": [
-      "Affiniti30", "Affiniti50", "Affiniti70", "Affiniti CVx", 
-      "CX50", "ClearVue", "3300", "EPIQElite", "EPIQ7", "EPIQ5", 
+      "Affiniti30", "Affiniti50", "Affiniti70", "Affiniti CVx",
+      "CX50", "ClearVue", "3300", "EPIQElite", "EPIQ7", "EPIQ5",
       "5500", "5100"
     ],
     "Carm": [
-      "BV Vectra-9", "BV Endura-9", "BV Endura-12", "BV Pulsera-9", 
-      "BV Pulsera-12", "Veradius Neo", "Veradius Unity", "Zenition 50-9", 
-      "Zenition 50-12", "Zenition 70FD12", "Zenition 70FD15", 
+      "BV Vectra-9", "BV Endura-9", "BV Endura-12", "BV Pulsera-9",
+      "BV Pulsera-12", "Veradius Neo", "Veradius Unity", "Zenition 50-9",
+      "Zenition 50-12", "Zenition 70FD12", "Zenition 70FD15",
       "Zenition 70FD17", "Zenition 90", "Zenition 10", "Zenition 30"
     ]
   };
+
+  let allJobs = [];
+  let selectedStatus = '';
+
+  function escapeHtml(str) {
+    return String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function formatTimestampCell(ts) {
+    const parts = String(ts || '').trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return `<div class="mono-num fw-semibold">${escapeHtml(parts[0])}</div><div class="mono-num text-muted">${escapeHtml(parts[1])}</div>`;
+    }
+    return `<div class="mono-num">${escapeHtml(ts)}</div>`;
+  }
+
+  function showAlert(message, type = 'info') {
+    const box = document.getElementById('appAlert');
+    const text = document.getElementById('appAlertText');
+    box.className = `alert alert-${type} alert-dismissible fade show`;
+    text.textContent = message;
+    box.classList.remove('d-none');
+  }
+
+  function hideAlert() {
+    document.getElementById('appAlert').classList.add('d-none');
+  }
+
+  function toggleRepairForm(forceOpen) {
+    const section = document.getElementById('repairFormSection');
+    const btn = document.getElementById('toggleFormBtn');
+    const isHidden = section.classList.contains('d-none');
+    const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : isHidden;
+
+    if (shouldOpen) {
+      section.classList.remove('d-none');
+      btn.textContent = 'ปิดฟอร์มแจ้งซ่อม';
+      section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+      section.classList.add('d-none');
+      btn.textContent = '+ แจ้งซ่อมใหม่';
+    }
+  }
+
+  function selectStatusTab(btn) {
+    document.querySelectorAll('#statusTabs .status-tab-btn').forEach((el) => el.classList.remove('active'));
+    btn.classList.add('active');
+    selectedStatus = btn.getAttribute('data-status') || '';
+    applyFilters();
+  }
+
+  function updateStatusCounts() {
+    document.getElementById('countAll').textContent = String(allJobs.length);
+    document.getElementById('countPending').textContent = String(allJobs.filter((j) => j.status === 'รอดำเนินการ').length);
+    document.getElementById('countReceived').textContent = String(allJobs.filter((j) => j.status === 'ช่างรับเรื่อง').length);
+    document.getElementById('countRepairing').textContent = String(allJobs.filter((j) => j.status === 'กำลังซ่อมดำเนินการ').length);
+    document.getElementById('countDone').textContent = String(allJobs.filter((j) => j.status === 'เสร็จสิ้น').length);
+  }
 
   async function postToGas(payload) {
     const response = await fetch(GAS_WEB_APP_URL, {
@@ -113,15 +696,11 @@
     return await response.json();
   }
 
-  // 3.2 ฟังก์ชันดึงรุ่นเครื่องมาใส่ Dropdown
   function updateModels() {
     const type = document.getElementById('equipmentType').value;
     const modelSelect = document.getElementById('model');
-    
-    // เคลียร์ค่าเก่าทิ้ง
     modelSelect.innerHTML = '<option value="" disabled selected>-- เลือกรุ่นเครื่อง --</option>';
-    
-    // วนลูปใส่ค่าใหม่ตามชนิดที่เลือก
+
     if (modelsData[type]) {
       modelsData[type].forEach(function(modelName) {
         const opt = document.createElement('option');
@@ -132,11 +711,10 @@
     }
   }
 
-  // 3.3 ฟังก์ชันส่งข้อมูลฟอร์ม
   async function submitForm() {
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
-    btn.innerHTML = 'กำลังบันทึกข้อมูล... ⏳';
+    btn.textContent = 'กำลังบันทึกข้อมูล...';
 
     const formData = {
       equipmentType: document.getElementById('equipmentType').value,
@@ -149,118 +727,170 @@
     try {
       const res = await postToGas({ action: 'addJob', data: formData });
       if (res.status === 'success' || res.message === 'Success') {
-        alert("บันทึกการแจ้งซ่อมเรียบร้อยแล้ว!");
+        showAlert('บันทึกการแจ้งซ่อมเรียบร้อยแล้ว', 'success');
         document.getElementById('repairForm').reset();
-        updateModels(); // รีเซ็ต Dropdown รุ่นเครื่องด้วย
-        loadTableData(); // รีเฟรชตารางใหม่ทันที
+        updateModels();
+        toggleRepairForm(false);
+        await loadTableData();
       } else {
-        alert("เกิดข้อผิดพลาด: " + (res.message || 'ไม่สามารถบันทึกข้อมูลได้'));
+        showAlert('เกิดข้อผิดพลาด: ' + (res.message || 'ไม่สามารถบันทึกข้อมูลได้'), 'danger');
       }
     } catch (error) {
-      alert("ระบบขัดข้อง: " + error.message);
+      showAlert('ระบบขัดข้อง: ' + error.message, 'danger');
     } finally {
       btn.disabled = false;
-      btn.innerHTML = 'บันทึกการแจ้งซ่อม';
+      btn.textContent = 'บันทึกการแจ้งซ่อม';
     }
   }
 
-  // 3.4 โหลดตารางเมื่อเปิดหน้าเว็บ
   document.addEventListener("DOMContentLoaded", function() {
     loadTableData();
   });
 
-  // 3.5 ฟังก์ชันโหลดข้อมูลตารางจากหลังบ้าน
   async function loadTableData() {
     const tbody = document.querySelector('#jobTable tbody');
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">กำลังโหลดประวัติการแจ้งซ่อม... ⏳</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">กำลังโหลดประวัติการแจ้งซ่อม...</td></tr>';
 
     try {
       const res = await postToGas({ action: 'getJobs' });
       if (res && res.status === 'success') {
-        renderTable(res.data || []);
+        allJobs = res.data || [];
+        updateStatusCounts();
+        applyFilters();
       } else {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">โหลดข้อมูลไม่สำเร็จ: ${(res && res.message) || 'Unknown error'}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">โหลดข้อมูลไม่สำเร็จ: ${escapeHtml((res && res.message) || 'Unknown error')}</td></tr>`;
       }
     } catch (error) {
-      tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">โหลดข้อมูลไม่สำเร็จ: ${error.message}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">โหลดข้อมูลไม่สำเร็จ: ${escapeHtml(error.message)}</td></tr>`;
     }
   }
 
-  // 3.6 ฟังก์ชันวาดข้อมูลลงตาราง
+  function applyFilters() {
+    const eq = document.getElementById('filterEquipment').value;
+    const kw = document.getElementById('filterKeyword').value.trim().toLowerCase();
+
+    const filtered = allJobs.filter((job) => {
+      if (eq && job.equipmentType !== eq) return false;
+      if (selectedStatus && job.status !== selectedStatus) return false;
+      if (kw) {
+        const hay = `${job.model} ${job.sn} ${job.problem} ${job.reporter} ${job.details}`.toLowerCase();
+        if (!hay.includes(kw)) return false;
+      }
+      return true;
+    });
+
+    renderTable(filtered);
+  }
+
   function renderTable(jobs) {
     const tbody = document.querySelector('#jobTable tbody');
-    tbody.innerHTML = ''; 
+    tbody.innerHTML = '';
 
     if (!jobs || jobs.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">ยังไม่มีประวัติการแจ้งซ่อมในระบบ</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">ไม่พบข้อมูลประวัติการแจ้งซ่อมที่ตรงกับตัวกรอง</td></tr>';
       return;
     }
 
-    jobs.forEach(function(job) {
-      let badgeClass = "bg-secondary";
-      if (job.status === "รอดำเนินการ") badgeClass = "bg-warning text-dark";
-      else if (job.status === "ช่างรับเรื่อง") badgeClass = "bg-primary";
-      else if (job.status === "กำลังซ่อมดำเนินการ") badgeClass = "bg-primary";
-      else if (job.status === "เสร็จสิ้น") badgeClass = "bg-success";
+    jobs.forEach(function(job, idx) {
+      let statusClass = 'status-pending';
+      if (job.status === 'ช่างรับเรื่อง') statusClass = 'status-received';
+      else if (job.status === 'กำลังซ่อมดำเนินการ') statusClass = 'status-repairing';
+      else if (job.status === 'เสร็จสิ้น') statusClass = 'status-done';
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td class="text-nowrap"><small>${job.timestamp}</small></td>
-        <td><strong>${job.model}</strong><br><small class="text-muted">SN: ${job.sn}</small><br><span class="badge bg-info text-dark mt-1">${job.equipmentType}</span></td>
-        <td>${job.problem}<br><small class="text-primary">แจ้งโดย: ${job.reporter}</small></td>
-        <td class="text-center">
-          <span class="badge ${badgeClass} fs-6 mb-1">${job.status}</span>
-          <div class="text-muted" style="font-size: 0.85em;">${job.details || '-'}</div>
+        <td class="col-time mobile-inline-top">
+          <div>${formatTimestampCell(job.timestamp)}</div>
+          <span class="status-label d-lg-none ${statusClass}">${escapeHtml(job.status)}</span>
         </td>
-        <td>
-          <select id="status_${job.sheetName}_${job.rowNumber}" class="form-select form-select-sm">
+        <td class="col-model">
+          <div class="fw-bold text-dark">${escapeHtml(job.model)}</div>
+          <div class="meta-inline mono-num">SN: ${escapeHtml(job.sn)} · ${escapeHtml(job.equipmentType)}</div>
+        </td>
+        <td class="col-problem">
+          <div class="problem-text">${escapeHtml(job.problem)}</div>
+          <div class="meta-inline">แจ้งโดย: ${escapeHtml(job.reporter)}</div>
+        </td>
+        <td class="col-status d-none d-lg-table-cell">
+          <span class="status-label ${statusClass}">${escapeHtml(job.status)}</span>
+          <div class="meta-inline">${escapeHtml(job.details) || '-'}</div>
+        </td>
+        <td class="col-update mobile-field-label" data-label="อัปเดตสถานะ">
+          <select id="status_${idx}" class="form-select form-select-sm" aria-label="อัปเดตสถานะ">
             <option value="รอดำเนินการ" ${job.status === 'รอดำเนินการ' ? 'selected' : ''}>รอดำเนินการ</option>
             <option value="ช่างรับเรื่อง" ${job.status === 'ช่างรับเรื่อง' ? 'selected' : ''}>ช่างรับเรื่อง</option>
             <option value="กำลังซ่อมดำเนินการ" ${job.status === 'กำลังซ่อมดำเนินการ' ? 'selected' : ''}>กำลังซ่อมดำเนินการ</option>
             <option value="เสร็จสิ้น" ${job.status === 'เสร็จสิ้น' ? 'selected' : ''}>เสร็จสิ้น</option>
           </select>
         </td>
-        <td>
-          <input type="text" id="detail_${job.sheetName}_${job.rowNumber}" class="form-control form-control-sm" placeholder="ระบุการแก้ไข..." value="${job.details}">
+        <td class="col-detail mobile-field-label" data-label="รายละเอียดการแก้ไข">
+          <input type="text" id="detail_${idx}" class="form-control form-control-sm" placeholder="ระบุการแก้ไข..." value="${escapeHtml(job.details)}" aria-label="รายละเอียดการแก้ไข">
         </td>
-        <td class="text-center">
-          <button class="btn btn-sm btn-success w-100" id="btn_${job.sheetName}_${job.rowNumber}" onclick="saveUpdate('${job.sheetName}', ${job.rowNumber})">บันทึก</button>
+        <td class="col-action">
+          <button type="button" class="btn-save-row" id="btn_${idx}">บันทึก</button>
         </td>
       `;
+
+      const saveBtn = tr.querySelector(`#btn_${idx}`);
+      saveBtn.addEventListener('click', () => saveUpdate(idx, job));
       tbody.appendChild(tr);
     });
   }
 
-  // 3.7 ฟังก์ชันบันทึกการอัปเดตจากตาราง (สำหรับช่าง)
-  async function saveUpdate(sheetName, rowNumber) {
-    const btn = document.getElementById(`btn_${sheetName}_${rowNumber}`);
-    const status = document.getElementById(`status_${sheetName}_${rowNumber}`).value;
-    const details = document.getElementById(`detail_${sheetName}_${rowNumber}`).value;
+  async function saveUpdate(idx, job) {
+    const btn = document.getElementById(`btn_${idx}`);
+    const status = document.getElementById(`status_${idx}`).value;
+    const details = document.getElementById(`detail_${idx}`).value;
 
     btn.disabled = true;
-    btn.innerHTML = '...';
-
+    btn.textContent = '...';
     try {
       const res = await postToGas({
         action: 'updateJob',
-        sheetName: sheetName,
-        rowNumber: rowNumber,
-        status: status,
-        details: details
+        sheetName: job.sheetName,
+        rowNumber: job.rowNumber,
+        status,
+        details,
       });
       if (res.status === 'success' || res.message === 'Success') {
-        alert("อัปเดตสถานะสำเร็จ!");
-        loadTableData(); // โหลดตารางใหม่
+        showAlert('อัปเดตสถานะสำเร็จ', 'success');
+        await loadTableData();
       } else {
-        alert("ข้อผิดพลาด: " + (res.message || 'อัปเดตไม่สำเร็จ'));
+        showAlert('ข้อผิดพลาด: ' + (res.message || 'อัปเดตไม่สำเร็จ'), 'danger');
         btn.disabled = false;
-        btn.innerHTML = 'บันทึก';
+        btn.textContent = 'บันทึก';
       }
     } catch (err) {
-      alert("ระบบขัดข้อง: " + err.message);
+      showAlert('ระบบขัดข้อง: ' + err.message, 'danger');
       btn.disabled = false;
-      btn.innerHTML = 'บันทึก';
+      btn.textContent = 'บันทึก';
     }
+  }
+
+  function downloadCsv() {
+    const headers = ['Date', 'Model', 'S/N', 'Problem', 'Reporter', 'Service / update', 'Status', 'Equipment'];
+    const csvEscape = (v) => {
+      const s = String(v ?? '');
+      return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const ordered = [...allJobs].reverse();
+    const lines = [
+      headers.map(csvEscape).join(','),
+      ...ordered.map((j) =>
+        [j.timestamp, j.model, j.sn, j.problem, j.reporter, j.details, j.status, j.equipmentType]
+          .map(csvEscape)
+          .join(',')
+      ),
+    ];
+    const blob = new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Report_Problem_Ultrasound_Carm.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 </script>
 
