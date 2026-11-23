@@ -22,7 +22,6 @@
       --text-muted: #64748b;
       --brand-accent: #c86d1f;
       --brand-accent-dark: #a85712;
-      --brand-accent-soft: #fff7ed;
       --brand-accent-border: #fed7aa;
     }
 
@@ -105,6 +104,7 @@
 
     .brand-actions {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: 8px;
       flex-shrink: 0;
@@ -119,7 +119,7 @@
       border-radius: 9px;
       font-size: 0.875rem;
       white-space: nowrap;
-      transition: background-color 150ms cubic-bezier(0.16, 1, 0.3, 1), transform 150ms cubic-bezier(0.16, 1, 0.3, 1);
+      transition: background-color 150ms cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .btn-brand:hover, .btn-brand:focus-visible {
@@ -146,7 +146,7 @@
       color: var(--text-primary);
     }
 
-    /* Form Panel */
+    /* Panels */
     .surface-panel {
       background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
@@ -188,6 +188,30 @@
     .form-control:focus, .form-select:focus {
       border-color: var(--brand-accent);
       box-shadow: 0 0 0 3px rgba(200, 109, 31, 0.14);
+    }
+
+    /* Sheet Info Strip */
+    .sheet-meta-strip {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--border-hairline);
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .sheet-meta-strip a {
+      color: var(--brand-accent-dark);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .sheet-meta-strip a:hover {
+      text-decoration: underline;
     }
 
     /* Filter & Segmented Status Controls */
@@ -374,7 +398,6 @@
       opacity: 0.6;
     }
 
-    /* Compact mobile & tablet card-row transformation: ZERO horizontal scrolling */
     @media (max-width: 991.98px) {
       .app-shell {
         padding: 12px 12px 28px;
@@ -562,8 +585,20 @@
     </form>
   </section>
 
-  <!-- ส่วนที่ 2: ตารางแสดงประวัติและอัปเดตสถานะ (พอดีหน้าจอ ไม่มีสกอเลื่อนแนวนอน) -->
+  <!-- ส่วนที่ 2: ตารางแสดงประวัติและอัปเดตสถานะ -->
   <section class="surface-panel">
+    <div class="sheet-meta-strip">
+      <div id="sheetStatusText">
+        กำลังโหลดข้อมูลจาก Google Sheet...
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <select id="sheetTabSelect" class="form-select form-select-sm d-none" style="width: auto; min-height: 30px;" onchange="loadTableData()" aria-label="เลือกแท็บชีต">
+          <option value="__ALL__">ทุกแท็บ</option>
+        </select>
+        <a id="openSheetLink" href="https://docs.google.com/spreadsheets/d/1IqXL30M0O23dkaQaP85iLRHuUH7IMxGEUs-cJyzEbkQ/edit" target="_blank" rel="noopener noreferrer">เปิด Google Sheet</a>
+      </div>
+    </div>
+
     <div class="toolbar-row">
       <div class="status-tabs" id="statusTabs" role="tablist" aria-label="กรองตามสถานะงานซ่อม">
         <button type="button" class="status-tab-btn active" data-status="" onclick="selectStatusTab(this)">ทั้งหมด (<span id="countAll">0</span>)</button>
@@ -580,7 +615,7 @@
           <option value="Carm">Carm</option>
         </select>
         <input type="text" id="filterKeyword" class="form-control" placeholder="ค้นหา รุ่น / SN / อาการ..." oninput="applyFilters()" aria-label="ค้นหารายการซ่อม">
-        <button type="button" class="btn-subtle" style="padding: 6px 12px;" onclick="loadTableData()">รีเฟรช</button>
+        <button type="button" class="btn-subtle" style="padding: 6px 12px;" onclick="loadTableData(true)">ดึงล่าสุด</button>
       </div>
     </div>
 
@@ -608,8 +643,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-  const GAS_WEB_APP_URL = '/api/gas';
-
   const modelsData = {
     "Ultrasound": [
       "Affiniti30", "Affiniti50", "Affiniti70", "Affiniti CVx",
@@ -656,6 +689,19 @@
     document.getElementById('appAlert').classList.add('d-none');
   }
 
+  async function parseJsonResponse(res) {
+    const text = await res.text();
+    try {
+      return JSON.parse(text);
+    } catch {
+      const trimmed = text.trim();
+      if (trimmed.startsWith('<')) {
+        throw new Error(`เซิร์ฟเวอร์ตอบกลับเป็น HTML (HTTP ${res.status}) กรุณารีเฟรชหน้าเว็บหรือตรวจสอบ API Route`);
+      }
+      throw new Error(`คำตอบจากเซิร์ฟเวอร์ไม่ถูกต้อง (HTTP ${res.status})`);
+    }
+  }
+
   function toggleRepairForm(forceOpen) {
     const section = document.getElementById('repairFormSection');
     const btn = document.getElementById('toggleFormBtn');
@@ -687,15 +733,6 @@
     document.getElementById('countDone').textContent = String(allJobs.filter((j) => j.status === 'เสร็จสิ้น').length);
   }
 
-  async function postToGas(payload) {
-    const response = await fetch(GAS_WEB_APP_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload)
-    });
-    return await response.json();
-  }
-
   function updateModels() {
     const type = document.getElementById('equipmentType').value;
     const modelSelect = document.getElementById('model');
@@ -725,18 +762,35 @@
     };
 
     try {
-      const res = await postToGas({ action: 'addJob', data: formData });
-      if (res.status === 'success' || res.message === 'Success') {
-        showAlert('บันทึกการแจ้งซ่อมเรียบร้อยแล้ว', 'success');
-        document.getElementById('repairForm').reset();
-        updateModels();
-        toggleRepairForm(false);
-        await loadTableData();
-      } else {
-        showAlert('เกิดข้อผิดพลาด: ' + (res.message || 'ไม่สามารถบันทึกข้อมูลได้'), 'danger');
+      const targetTab = formData.equipmentType === 'Carm' ? 'CARM' : 'Ultrasound';
+
+      const res = await fetch('/api/jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sheetName: targetTab,
+          data: formData,
+        }),
+      });
+      const data = await parseJsonResponse(res);
+      if (!res.ok || data.status !== 'success') {
+        throw new Error(data.message || 'ไม่สามารถบันทึกข้อมูลได้');
       }
+
+      if (data.syncedToSheet === false) {
+        showAlert(
+          data.warning || 'บันทึกในเว็บแล้ว แต่ยังไม่ได้บันทึกลง Google Sheet (กรุณาตรวจสอบการตั้งค่าเชื่อมต่อ)',
+          'warning'
+        );
+      } else {
+        showAlert('บันทึกการแจ้งซ่อมลง Google Sheet เรียบร้อยแล้ว!', 'success');
+      }
+      document.getElementById('repairForm').reset();
+      updateModels();
+      toggleRepairForm(false);
+      await loadTableData(false);
     } catch (error) {
-      showAlert('ระบบขัดข้อง: ' + error.message, 'danger');
+      showAlert('บันทึกข้อมูลไม่สำเร็จ: ' + error.message, 'danger');
     } finally {
       btn.disabled = false;
       btn.textContent = 'บันทึกการแจ้งซ่อม';
@@ -744,22 +798,58 @@
   }
 
   document.addEventListener("DOMContentLoaded", function() {
-    loadTableData();
+    loadTableData(false);
   });
 
-  async function loadTableData() {
+  async function loadTableData(refreshSheet = false) {
     const tbody = document.querySelector('#jobTable tbody');
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">กำลังโหลดประวัติการแจ้งซ่อม...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">กำลังโหลดข้อมูล...</td></tr>';
+
+    const statusTextEl = document.getElementById('sheetStatusText');
+    const tabSelect = document.getElementById('sheetTabSelect');
 
     try {
-      const res = await postToGas({ action: 'getJobs' });
-      if (res && res.status === 'success') {
-        allJobs = res.data || [];
-        updateStatusCounts();
-        applyFilters();
-      } else {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">โหลดข้อมูลไม่สำเร็จ: ${escapeHtml((res && res.message) || 'Unknown error')}</td></tr>`;
+      const selectedTab = tabSelect.value || '__ALL__';
+      const qs = new URLSearchParams();
+      if (selectedTab !== '__ALL__') qs.set('tab', selectedTab);
+      if (refreshSheet) qs.set('refreshSheet', '1');
+
+      const res = await fetch(`/api/jobs?${qs.toString()}`);
+      const data = await parseJsonResponse(res);
+      if (!res.ok || data.status !== 'success') {
+        throw new Error(data.message || 'ไม่สามารถโหลดข้อมูลได้');
       }
+
+      if (Array.isArray(data.sheets) && data.sheets.length > 1) {
+        const prevVal = tabSelect.value;
+        tabSelect.innerHTML = '<option value="__ALL__">ทุกแท็บ</option>';
+        data.sheets.forEach((tab) => {
+          const opt = document.createElement('option');
+          opt.value = tab;
+          opt.textContent = tab;
+          tabSelect.appendChild(opt);
+        });
+        if (prevVal && (prevVal === '__ALL__' || data.sheets.includes(prevVal))) {
+          tabSelect.value = prevVal;
+        }
+        tabSelect.classList.remove('d-none');
+      } else {
+        tabSelect.classList.add('d-none');
+      }
+
+      allJobs = data.data || [];
+      const sheetNameLabel = data.title || 'Report Problem Ultrasound & Carm';
+      if (data.mode === 'service_account' || data.mode === 'gas_webapp' || data.writeReady) {
+        statusTextEl.textContent = `Google Sheet: ${sheetNameLabel} (${allJobs.length} รายการ · เชื่อมต่ออ่าน/เขียนอัตโนมัติ)`;
+      } else {
+        statusTextEl.textContent = `Google Sheet: ${sheetNameLabel} (${allJobs.length} รายการ · อ่านข้อมูลล่าสุดจากชีต · ยังไม่ได้เชื่อมสิทธิ์เขียน)`;
+        if (data.warning) {
+          statusTextEl.title = data.warning;
+        }
+      }
+
+      updateStatusCounts();
+      applyFilters();
     } catch (error) {
       tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">โหลดข้อมูลไม่สำเร็จ: ${escapeHtml(error.message)}</td></tr>`;
     }
@@ -845,23 +935,31 @@
     btn.disabled = true;
     btn.textContent = '...';
     try {
-      const res = await postToGas({
-        action: 'updateJob',
-        sheetName: job.sheetName,
-        rowNumber: job.rowNumber,
-        status,
-        details,
+      const res = await fetch('/api/jobs', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sheetName: job.sheetName,
+          rowNumber: job.rowNumber,
+          status,
+          details,
+        }),
       });
-      if (res.status === 'success' || res.message === 'Success') {
-        showAlert('อัปเดตสถานะสำเร็จ', 'success');
-        await loadTableData();
-      } else {
-        showAlert('ข้อผิดพลาด: ' + (res.message || 'อัปเดตไม่สำเร็จ'), 'danger');
-        btn.disabled = false;
-        btn.textContent = 'บันทึก';
+      const data = await parseJsonResponse(res);
+      if (!res.ok || data.status !== 'success') {
+        throw new Error(data.message || 'อัปเดตข้อมูลไม่สำเร็จ');
       }
+      if (data.syncedToSheet === false) {
+        showAlert(
+          data.warning || 'อัปเดตในเว็บแล้ว แต่ยังไม่ได้บันทึกลง Google Sheet (กรุณาตรวจสอบการตั้งค่าเชื่อมต่อ)',
+          'warning'
+        );
+      } else {
+        showAlert('อัปเดตสถานะและรายละเอียดลง Google Sheet เรียบร้อยแล้ว', 'success');
+      }
+      await loadTableData(false);
     } catch (err) {
-      showAlert('ระบบขัดข้อง: ' + err.message, 'danger');
+      showAlert('อัปเดตข้อมูลไม่สำเร็จ: ' + err.message, 'danger');
       btn.disabled = false;
       btn.textContent = 'บันทึก';
     }
